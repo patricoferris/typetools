@@ -9,7 +9,7 @@ tags: ["topics" "ppx"]
 homepage: "https://github.com/patricoferris/typetools"
 bug-reports: "https://github.com/patricoferris/typetools/issues"
 depends: [
-  "ocaml" {>= "4.08.0"}
+  "ocaml" {>= "4.14.0"}
   "dune" {>= "3.16"}
   "ppxlib"
   "ezjsonm"

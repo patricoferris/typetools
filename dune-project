@@ -21,7 +21,7 @@
  (synopsis "Tools for OCaml types")
  (description "Generate OCaml types from example data")
  (depends 
-   (ocaml (>= "4.08.0")) 
+   (ocaml (>= "4.14.0")) 
    dune
    ppxlib
    ezjsonm
