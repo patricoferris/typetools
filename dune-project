@@ -21,12 +21,12 @@
  (synopsis "Tools for OCaml types")
  (description "Generate OCaml types from example data")
  (depends 
-   ocaml 
+   (ocaml (>= "4.08.0")) 
    dune
    ppxlib
    ezjsonm
    yaml
-   jekyll-format
+   (jekyll-format (>= "0.2.0"))
    (mdx :with-test)
   )
  (tags

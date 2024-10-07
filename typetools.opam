@@ -9,12 +9,12 @@ tags: ["topics" "ppx"]
 homepage: "https://github.com/patricoferris/typetools"
 bug-reports: "https://github.com/patricoferris/typetools/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.08.0"}
   "dune" {>= "3.16"}
   "ppxlib"
   "ezjsonm"
   "yaml"
-  "jekyll-format"
+  "jekyll-format" {>= "0.2.0"}
   "mdx" {with-test}
   "odoc" {with-doc}
 ]
