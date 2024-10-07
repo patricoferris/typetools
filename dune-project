@@ -27,6 +27,7 @@
    ezjsonm
    yaml
    jekyll-format
+   (mdx :with-test)
   )
  (tags
   (topics ppx)))
