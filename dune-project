@@ -23,6 +23,7 @@
  (depends 
    ocaml 
    dune
+   ppxlib
    ezjsonm
    yaml
    jekyll-format
