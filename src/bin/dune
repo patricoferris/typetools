@@ -1,0 +1,4 @@
+(executable
+ (public_name typetools)
+ (name main)
+ (libraries typetools cmdliner))

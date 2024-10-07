@@ -1,0 +1,3 @@
+(library
+ (name typetools)
+ (libraries ppxlib yaml ezjsonm jekyll-format))
