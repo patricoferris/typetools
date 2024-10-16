@@ -35,13 +35,12 @@ $ cat > example.yml << EOF \
 >   - 1.2345 \
 > EOF
 $ typetools example.yml
-type nonrec t2 = Yaml.value list
-and t1 = {
+type nonrec t1 = {
   name: string ;
   age: int }
 and t = {
   person: t1 ;
-  hlist: t2 }
+  hlist: Yaml.value list }
 ```
 
 Jekyll formatted files will have a metadata type alongside the markdown content.

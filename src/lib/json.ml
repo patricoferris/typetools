@@ -2,15 +2,6 @@ open Common
 
 type t = Ezjsonm.value
 
-let to_core_type (config : Config.t) = function
-  | `String _ -> Types.string
-  | `Float _ -> (
-      match config.number_handling with
-      | `Infer_integers -> Types.int
-      | `String -> Types.string)
-  | `Bool _ -> Types.bool
-  | _ -> assert false
-
 let rec is_same_shape_as v v' =
   match (v, v') with
   | `String _, `String _ | `Float _, `Float _ | `Bool _, `Bool _ | `Null, `Null
@@ -22,6 +13,27 @@ let rec is_same_shape_as v v' =
         (fun (k, v) (k', v') -> String.equal k k' && is_same_shape_as v v')
         a b
   | _ -> false
+
+let rec to_core_type ?default_type (config : Config.t) = function
+  | `String _ -> Some Types.string
+  | `Float _ -> (
+      match config.number_handling with
+      | `Infer_integers -> Some Types.int
+      | `String -> Some Types.string)
+  | `Bool _ -> Some Types.bool
+  | `A (v :: vs) -> (
+      match
+        ( List.for_all (is_same_shape_as v) vs,
+          default_type,
+          to_core_type ?default_type config v )
+      with
+      | true, _, Some c -> Some (Types.list c)
+      | false, Some d, _ -> Some (Types.list d)
+      | false, None, _ ->
+          failwith
+            "Types are not the same in the list, and no default type given"
+      | _, _, None -> None)
+  | _ -> None
 
 let id =
   let i = ref 0 in
@@ -44,18 +56,25 @@ let rec to_type_aux :
       | `String -> type_decl ~name (`Built_in Types.string) :: acc)
   | `O [] -> failwith "Cannot infer a type for an empty object"
   | `O assoc ->
+      let make_new_type key v =
+        let new_id = id () in
+        let new_name = "t" ^ new_id in
+        let new_types =
+          to_type_aux ~config ~name:new_name ~default_type ~acc:[]
+            (v :> Ezjsonm.value)
+        in
+        let lbl = lbl_decl key (Types.alias new_name) in
+        (Some new_types, lbl)
+      in
       let make_label acc (key, v) =
         match v with
-        | #Ezjsonm.t ->
-            let new_id = id () in
-            let new_name = "t" ^ new_id in
-            let new_types =
-              to_type_aux ~config ~name:new_name ~default_type ~acc:[]
-                (v :> Ezjsonm.value)
-            in
-            let lbl = lbl_decl key (Types.alias new_name) in
-            (Some new_types, lbl) :: acc
-        | _ -> (None, lbl_decl key (to_core_type config v)) :: acc
+        | `O _ -> make_new_type key v :: acc
+        | v -> (
+            match
+              to_core_type ~default_type:(Types.alias default_type) config v
+            with
+            | Some c -> (None, lbl_decl key c) :: acc
+            | None -> make_new_type key v :: acc)
       in
       let lbls = List.fold_left make_label [] assoc |> List.rev in
       let new_types = List.filter_map fst lbls |> List.concat in
@@ -82,9 +101,12 @@ let rec to_type_aux :
               type_decl ~name (`Built_in (Types.list (Types.alias new_name)))
             in
             (List.rev @@ (t :: new_types)) @ acc
-        | _ ->
-            let c = Types.list (to_core_type config v) in
-            type_decl ~name (`Built_in c) :: acc)
+        | _ -> (
+            match
+              to_core_type ~default_type:(Types.alias default_type) config v
+            with
+            | Some c -> type_decl ~name (`Built_in c) :: acc
+            | None -> assert false))
   | _ -> failwith "TODO"
 
 let to_type ?config ?name t =
