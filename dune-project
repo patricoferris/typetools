@@ -26,6 +26,8 @@
    ppxlib
    ezjsonm
    yaml
+   dune-build-info
+   (ppx_deriving_yaml :with-test)
    (jekyll-format (>= "0.2.0"))
    (mdx :with-test)
   )
