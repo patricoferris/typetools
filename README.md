@@ -60,8 +60,19 @@ $ cat > example.md << EOF \
 $ typetools type --derivers example.md
 type nonrec metadata = {
   title: string ;
-  date: string }
+  date: string }[@@deriving yaml]
 type nonrec t = {
   metadata: metadata ;
   markdown: string }
+let of_string s =
+  let jk = Jekyll_format.of_string s in
+  let markdown = Result.map Jekyll_format.body jk in
+  let fields =
+    Result.map Jekyll_format.fields_to_yaml
+      (Result.map Jekyll_format.fields jk) in
+  let metadata = Result.bind fields metadata_of_yaml in
+  match (markdown, metadata) with
+  | (Ok markdown, Ok metadata) -> Ok { metadata; markdown }
+  | (Error (`Msg m1), Error (`Msg m2)) -> Error (`Msg (m1 ^ (" " ^ m2)))
+  | ((Error _ as e), _) | (_, (Error _ as e)) -> e
 ```
