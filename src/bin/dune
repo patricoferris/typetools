@@ -1,4 +1,11 @@
 (executable
  (public_name typetools)
  (name main)
- (libraries typetools cmdliner))
+ (libraries
+  typetools
+  cmdliner
+  dune-build-info
+  logs.fmt
+  logs.cli
+  fmt.tty
+  fmt.cli))

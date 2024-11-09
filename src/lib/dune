@@ -1,3 +1,5 @@
 (library
  (name typetools)
+ (preprocess
+  (pps ppxlib.metaquot))
  (libraries ppxlib yaml ezjsonm jekyll-format))

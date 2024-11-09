@@ -25,6 +25,18 @@ module Types = struct
   let alias a = simple_type (`Alias a)
 end
 
+let with_ppx ~ppx (t : Ppxlib.type_declaration) =
+  let open Ppxlib in
+  let payload =
+    PStr
+      [ Ast_helper.Str.eval @@ Ast_helper.Exp.ident { txt = Lident ppx; loc } ]
+  in
+  {
+    t with
+    ptype_attributes =
+      [ Ppxlib.Ast_helper.Attr.mk { txt = "deriving"; loc } payload ];
+  }
+
 let type_declaration ~name ~kind ~manifest =
   Ppxlib.Ast_builder.Default.type_declaration ~loc ~name:{ txt = name; loc }
     ~private_:Public ~params:[] ~manifest ~cstrs:[] ~kind

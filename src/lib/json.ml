@@ -41,6 +41,11 @@ let id =
     incr i;
     string_of_int !i
 
+let with_deriving ~config t =
+  match config.Config.with_parsers with
+  | None -> t
+  | Some ppx -> with_ppx ~ppx t
+
 let rec to_type_aux :
     ?config:Config.t ->
     ?name:string ->
@@ -79,14 +84,17 @@ let rec to_type_aux :
       let lbls = List.fold_left make_label [] assoc |> List.rev in
       let new_types = List.filter_map fst lbls |> List.concat in
       let lbls = List.map snd lbls in
-      let ts = type_decl ~name (`Record lbls) :: new_types |> List.rev in
+      let ts =
+        with_deriving ~config (type_decl ~name (`Record lbls)) :: new_types
+        |> List.rev
+      in
       ts @ acc
   | `A [] -> failwith "Cannot infer a type for an empty list"
   | `A (v :: values) -> (
       let same_type = List.for_all (is_same_shape_as v) values in
       if not same_type then
         let v = Types.list (Types.alias default_type) in
-        let t = type_decl ~name (`Built_in v) in
+        let t = with_deriving ~config @@ type_decl ~name (`Built_in v) in
         t :: acc
       else
         match v with
@@ -98,16 +106,18 @@ let rec to_type_aux :
                 (v :> Ezjsonm.value)
             in
             let t =
-              type_decl ~name (`Built_in (Types.list (Types.alias new_name)))
+              with_deriving ~config
+              @@ type_decl ~name (`Built_in (Types.list (Types.alias new_name)))
             in
             (List.rev @@ (t :: new_types)) @ acc
         | _ -> (
             match
               to_core_type ~default_type:(Types.alias default_type) config v
             with
-            | Some c -> type_decl ~name (`Built_in c) :: acc
+            | Some c ->
+                (with_deriving ~config @@ type_decl ~name (`Built_in c)) :: acc
             | None -> assert false))
-  | _ -> failwith "TODO"
+  | _ -> failwith "Unsupported Type"
 
 let to_type ?config ?name t =
-  to_type_aux ?config ?name ~default_type:"Ezjsonm.value" ~acc:[] t
+  (to_type_aux ?config ?name ~default_type:"Ezjsonm.value" ~acc:[] t, [])

@@ -16,7 +16,7 @@ some types for your data.
 
 ```sh
 $ echo "{ \"name\": \"Alice\", \"age\": 42 }" > example.json
-$ typetools example.json
+$ typetools type example.json
 type nonrec t = {
   name: string ;
   age: int }
@@ -34,14 +34,17 @@ $ cat > example.yml << EOF \
 >   - "a string" \
 >   - 1.2345 \
 > EOF
-$ typetools example.yml
+$ typetools type --derivers example.yml
 type nonrec t1 = {
   name: string ;
-  age: int }
-and t = {
+  age: int }[@@deriving yaml]
+type nonrec t = {
   person: t1 ;
-  hlist: Yaml.value list }
+  hlist: Yaml.value list }[@@deriving yaml]
 ```
+
+This example also show's how we can use the tool to add derivers and generate
+some glue code for quick parsers.
 
 Jekyll formatted files will have a metadata type alongside the markdown content.
 
@@ -54,11 +57,11 @@ $ cat > example.md << EOF \
 > ---\
 > # Welcome! \
 > EOF
-$ typetools example.md
+$ typetools type --derivers example.md
 type nonrec metadata = {
   title: string ;
   date: string }
-and t = {
+type nonrec t = {
   metadata: metadata ;
   markdown: string }
 ```

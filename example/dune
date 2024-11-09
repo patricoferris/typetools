@@ -1,0 +1,15 @@
+(test
+ (name main)
+ (modules main blog)
+ (preprocess
+  (pps ppx_deriving_yaml))
+ (libraries jekyll-format yaml))
+
+(rule
+ (alias runtest)
+ (target blog.ml)
+ (deps %{bin:typetools} blog.md)
+ (action
+  (with-stdout-to
+   blog.ml
+   (run typetools type --derivers blog.md))))
